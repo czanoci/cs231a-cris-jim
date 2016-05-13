@@ -37,7 +37,7 @@ def scramble(img, type2=True):
 	for i in xrange(num_squares_H):
 		for j in xrange(num_squares_W):
 			pixels = img.reduced[i*P:(i+1)*P, j*P:(j+1)*P, :]
-			rot_idx = -1
+			rot_idx = 0
 			if type2:
 				rot_idx = random.randint(0, 3)
 				pixels = np.rot90(pixels, rot_idx)
