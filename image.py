@@ -15,12 +15,17 @@ class Image:
 		#self.lab = cv2.cvtColor(self.rgb, cv.CV_BGR2Lab)
 
 class Square:
-	def __init__(self, pixels, count):
-		self.id = count
+	def __init__(self, pixels, r, c, count, rot_idx):
+		self.r = r
+		self.c = c
+		self.idx = count
+		self.rot_idx = rot_idx
 		self.pix = pixels
 		self.pix90 = np.rot90(pixels, 1)
 		self.pix180 = np.rot90(pixels, 2)
 		self.pix270 = np.rot90(pixels, 3)
+
+		grads = np.zeros(4)
 
 
 def scramble(img, type2=True):
@@ -32,9 +37,11 @@ def scramble(img, type2=True):
 	for i in xrange(num_squares_H):
 		for j in xrange(num_squares_W):
 			pixels = img.reduced[i*P:(i+1)*P, j*P:(j+1)*P, :]
+			rot_idx = -1
 			if type2:
-				pixels = np.rot90(pixels, random.randint(0, 3))
-			sq = Square(pixels, count)
+				rot_idx = random.randint(0, 3)
+				pixels = np.rot90(pixels, rot_idx)
+			sq = Square(pixels, i, j, count, rot_idx)
 			count += 1
 			pieces.append(sq)
 	random.shuffle(pieces)
