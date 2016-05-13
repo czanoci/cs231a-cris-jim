@@ -11,12 +11,10 @@ def get_nonsym_compat(G, mu, S):
 	S_inv = np.linalg.inv(S)
 	return np.sum(np.dot(G, S_inv) * G)
 
-def get_compat(s1, s2, r1, r2):
-	p1 = s1.get_rotated_pixels(r1)
-	p2 = s2.get_rotated_pixels(r2)
-	G = p2[:, 0, :] - p1[:, P - 1, :]
-	compat = get_nonsym_compat(G, s1.get_left_mean(r1), s1.get_left_covar(r1)) + \
-		  get_nonsym_compat(-G, s2.get_right_mean(r2), s2.get_right_covar(r2))
+def get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j):
+	G = p_j[:, 0, :] - p_i[:, P - 1, :]
+	compat = get_nonsym_compat(G, left_mean, left_covar) + \
+		  get_nonsym_compat(-G, right_mean, right_covar)
 	return compat
 
 
@@ -31,11 +29,20 @@ dists = np.zeros([K, 4, K, 4])
 
 print K
 for i in xrange(K):
+	sq_i = img.pieces[i]
 	print i
 	for ri in xrange(4):
+		p_i = sq_i.get_rotated_pixels(ri)
+		left_mean = sq_i.get_left_mean(ri)
+		left_covar = sq_i.get_left_covar(ri)
 		for j in range(i+1, K):
+			sq_j = img.pieces[j]
 			for rj in xrange(4):
-				dists[i, ri, j, rj] = get_compat(img.pieces[i], img.pieces[j], ri, rj)
+				p_j = sq_j.get_rotated_pixels(rj)
+				right_mean = sq_j.get_right_mean(rj)
+				right_covar = sq_j.get_right_covar(rj)
+
+				dists[i, ri, j, rj] = get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j)
 				dists[j, (ri + 2)%4, i, (rj + 2)%4] = dists[i, ri, j, rj]
 
 

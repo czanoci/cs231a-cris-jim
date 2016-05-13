@@ -3,4 +3,4 @@
 img_filename = './Images/elephant.jpg'
 
 # the side length (in pixels) of the nxn square puzzle piece
-P = 28
+P = 64
