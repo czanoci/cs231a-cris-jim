@@ -17,6 +17,18 @@ def get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j):
 		  get_nonsym_compat(-G, right_mean, right_covar)
 	return compat
 
+def is_correct_neighbor(sq, rot, nbr):
+	correct = False
+	if rot == 0:
+		correct = nbr.r == sq.r and nbr.c == sq.c + 1
+	elif rot == 1:
+		correct = nbr.r == sq.r + 1 and nbr.c == sq.c
+	elif rot == 2:
+		correct = nbr.r == sq.r and nbr.c == sq.c - 1
+	elif rot == 3:
+		correct = nbr.r == sq.r - 1 and nbr.c == sq.c
+	return correct
+
 
 img = Image(img_filename)
 scramble(img)
@@ -43,7 +55,7 @@ for i in xrange(K):
 				right_covar = sq_j.get_right_covar(rj)
 
 				dists[i, ri, j, rj] = get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j)
-				dists[j, (ri + 2)%4, i, (rj + 2)%4] = dists[i, ri, j, rj]
+				dists[j, (rj + 2)%4, i, (ri + 2)%4] = dists[i, ri, j, rj]
 
 
 correct_pieces = 0
@@ -65,9 +77,10 @@ for i in xrange(K):
 					min_rot = rj
 		# check whether the closets found piece is the correct piece
 		min_s = img.pieces[min_ind]
-		if abs(square.r - min_s.r) + abs(square.c - min_s.c) == 1:
+		square_total_rot = (square.rot_idx + ri) % 4
+		if is_correct_neighbor(square, square_total_rot, min_s):
 			correct_pieces += 1
 			# check whether the closets found piece (which we know is the right piece) is matched on the right edge
-			if (square.rot_idx + ri) % 4 == (min_s.rot_idx + min_rot) % 4:
+			if square_total_rot == (min_s.rot_idx + min_rot) % 4:
 				correct_rots += 1
 print K, correct_pieces, correct_rots
