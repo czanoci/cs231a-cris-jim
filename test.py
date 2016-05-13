@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 
 img = Image(img_filename)
 scramble(img)
-assemble_image(img)
-
+#assemble_image(img)
 
 '''
 output_img = np.zeros([X, Y, 3])
