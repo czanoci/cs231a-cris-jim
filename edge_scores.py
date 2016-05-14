@@ -17,6 +17,10 @@ def get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j):
 		  get_nonsym_compat(-G, right_mean, right_covar)
 	return compat
 
+def get_ssd_compat(p_i, p_j):
+	diffs = p_i[:, P-1, :] - p_j[:, 0, :]
+	return np.sum(np.square(diffs))
+
 def is_correct_neighbor(sq, rot, nbr):
 	correct = False
 	if rot == 0:
@@ -53,7 +57,7 @@ def compute_edge_dist(img, type2=True):
 					right_mean = sq_j.get_right_mean(rj)
 					right_covar = sq_j.get_right_covar(rj)
 
-					dists[i, ri, j, rj] = get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j)
+					dists[i, ri, j, rj] = get_ssd_compat(p_i, p_j) #get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j)
 					dists[j, (rj + 2)%4, i, (ri + 2)%4] = dists[i, ri, j, rj]
 	return dists
 
