@@ -30,7 +30,7 @@ def is_correct_neighbor(sq, rot, nbr):
 	return correct
 
 
-def compute_edge_dist(img):
+def compute_edge_dist(img, type2=True):
 	K = len(img.pieces)
 
 	dists = np.zeros([K, 4, K, 4])
@@ -45,6 +45,10 @@ def compute_edge_dist(img):
 			for j in range(i+1, K):
 				sq_j = img.pieces[j]
 				for rj in xrange(4):
+
+					if (not type2) and ri != rj:
+						continue
+
 					p_j = sq_j.get_rotated_pixels(rj)
 					right_mean = sq_j.get_right_mean(rj)
 					right_covar = sq_j.get_right_covar(rj)
@@ -54,7 +58,7 @@ def compute_edge_dist(img):
 	return dists
 
 
-def count_correct_matches(img, dists):
+def count_correct_matches(img, dists, type2=True):
 	K = len(img.pieces)
 	correct_pieces = 0
 	correct_rots = 0
@@ -69,7 +73,7 @@ def count_correct_matches(img, dists):
 				if i == j:
 					continue
 				for rj in xrange(4):
-					if dists[i, ri, j, rj] < min_dist:
+					if (type2 or ri == rj) and dists[i, ri, j, rj] < min_dist:
 						min_dist = dists[i, ri, j, rj]
 						min_ind = j
 						min_rot = rj

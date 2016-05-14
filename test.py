@@ -7,17 +7,19 @@ import matplotlib.pyplot as plt
 import os
 from edge_scores import *
 
+type2 = False
+
 correct_pieces_list = []
 correct_rots_list = []
 
 for f in os.listdir(img_folder):
 	print f
 	img = Image(img_folder + f)
-	scramble(img)
+	scramble(img, type2)
 	for sq in img.pieces:
 		sq.compute_mean_and_covar()
-	dists = compute_edge_dist(img)
-	correct_pieces, correct_rots = count_correct_matches(img, dists)
+	dists = compute_edge_dist(img, type2)
+	correct_pieces, correct_rots = count_correct_matches(img, dists, type2)
 	correct_pieces_list.append(correct_pieces)
 	correct_rots_list.append(correct_rots)
 
