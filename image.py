@@ -91,3 +91,11 @@ def assemble_image(img):
 
 	cv2.imwrite("./Images/reconstruct.jpg", reconstruct)
 
+def save_squares(square, match1, match2, s_rot, m1_rot, m2_rot, filename):
+	pixels = np.zeros(2*P, 2*P, 3)
+	pixels[0:P, 0:P, :] = square.get_rotated_pixels(s_rot)
+	pixels[0:P, P:2*P, :] = match1.get_rotated_pixels(m1_rot)
+	pixels[P:2*P, 0:P, :] = square.get_rotated_pixels(s_rot)
+	pixels[P:2*P, P:2*P, :] = match2.get_rotated_pixels(m2_rot)
+
+	cv2.imwrite(filename, pixels)
