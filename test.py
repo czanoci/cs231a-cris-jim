@@ -8,7 +8,8 @@ import os
 from edge_scores import *
 
 type2 = True
-'''
+ssd = False
+
 correct_pieces_list = []
 correct_rots_list = []
 
@@ -18,7 +19,7 @@ for f in os.listdir(img_folder):
 	scramble(img, type2)
 	for sq in img.pieces:
 		sq.compute_mean_and_covar()
-	dists = compute_edge_dist(img, type2)
+	dists = compute_edge_dist(img, type2, ssd)
 	correct_pieces, correct_rots = count_correct_matches(img, dists, type2)
 	correct_pieces_list.append(correct_pieces)
 	correct_rots_list.append(correct_rots)
@@ -28,8 +29,8 @@ print correct_rots_list
 
 print np.mean(correct_pieces_list)
 print np.mean(correct_rots_list)
-'''
 
+'''
 
 
 img = Image(img_filename)
@@ -65,11 +66,11 @@ for i in xrange(K):
 		if cor_piece_ssd:
 			continue
 
-		save_squares(square, min_s_mgc, min_s_ssd, square_total_rot, min_rot_mgc, min_rot_ssd, 
+		save_squares(square, min_s_mgc, min_s_ssd, square.rot_idx, min_rot_mgc, min_rot_ssd, 
 			'./Images/differences/diff' + str(count) + '.jpg')
 		count += 1
 
-
+'''
 #img = Image(img_filename)
 #scramble(img)
 #assemble_image(img)
