@@ -2,5 +2,7 @@
 #train_img_filename = './Images/Landscape/mountain_color.jpg'
 img_filename = './Images/elephant.jpg'
 
+img_folder = './Images/imData/'
+
 # the side length (in pixels) of the nxn square puzzle piece
-P = 64
+P = 28

@@ -4,9 +4,32 @@ import numpy as np
 from constants import *
 from image import *
 import matplotlib.pyplot as plt
+import os
+from edge_scores import *
 
-img = Image(img_filename)
-scramble(img)
+correct_pieces_list = []
+correct_rots_list = []
+
+for f in os.listdir(img_folder):
+	print f
+	img = Image(img_folder + f)
+	scramble(img)
+	for sq in img.pieces:
+		sq.compute_mean_and_covar()
+	dists = compute_edge_dist(img)
+	correct_pieces, correct_rots = count_correct_matches(img, dists)
+	correct_pieces_list.append(correct_pieces)
+	correct_rots_list.append(correct_rots)
+
+print correct_pieces_list
+print correct_rots_list
+
+print np.mean(correct_pieces_list)
+print np.mean(correct_rots_list)
+
+
+#img = Image(img_filename)
+#scramble(img)
 #assemble_image(img)
 
 '''
