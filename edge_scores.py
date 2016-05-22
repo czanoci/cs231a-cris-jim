@@ -41,7 +41,8 @@ def compute_edge_dist(img, type2=True, ssd=False):
 
 	for i in xrange(K):
 		sq_i = img.pieces[i]
-		print i
+		if i % 10 == 0:
+			print i, '/', K
 		for ri in xrange(4):
 			p_i = sq_i.get_rotated_pixels(ri)
 			left_mean = sq_i.get_left_mean(ri)
@@ -67,11 +68,18 @@ def count_correct_matches(img, dists, type2=True):
 	K = len(img.pieces)
 	correct_pieces = 0
 	correct_rots = 0
+	total_neighbors = 0;
 
 	for i in xrange(K):
 		square = img.pieces[i]
 		for ri in xrange(4):
 			square_total_rot = (square.rot_idx + ri) % 4
+
+			# only consider the edges which actually have a match in the image
+			if not img.square_has_neighbor(square, square_total_rot):
+				continue
+
+			total_neighbors = total_neighbors + 1
 
 			min_ind, min_rot, _ = get_nearest_edge(i, ri, dists, K, type2)
 			
@@ -86,7 +94,7 @@ def count_correct_matches(img, dists, type2=True):
 				if cor_rot:
 					correct_rots += 1
 					
-	return correct_pieces/(4.0*K), correct_rots/(4.0*K)
+	return correct_pieces/total_neighbors, correct_rots/total_neighbors
 
 def get_nearest_edge(i, ri, dists, K, type2=True):
 	min_dist = float("inf");

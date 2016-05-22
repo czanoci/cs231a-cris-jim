@@ -14,6 +14,19 @@ class Image:
 		self.pieces = []
 		#self.lab = cv2.cvtColor(self.rgb, cv.CV_BGR2Lab)
 
+	def square_has_neighbor(self, square, rot_idx):
+		H = self.H/P
+		W = self.W/P
+		if square.r == 0 and rot_idx == 3:
+			return False
+		elif square.c == 0 and rot_idx == 2:
+			return False
+		elif square.r == H - 1 and rot_idx == 1:
+			return False
+		elif square.c == W - 1 and rot_idx == 0:
+			return False
+		return True
+
 class Square:
 	def __init__(self, pixels, r, c, count, rot_idx):
 		self.r = r

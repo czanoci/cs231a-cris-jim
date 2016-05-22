@@ -10,6 +10,7 @@ from edge_scores import *
 type2 = True
 ssd = False
 
+'''
 correct_pieces_list = []
 correct_rots_list = []
 
@@ -35,6 +36,7 @@ print np.mean(correct_rots_list)
 
 img = Image(img_filename)
 scramble(img, type2)
+
 for sq in img.pieces:
 	sq.compute_mean_and_covar()
 
@@ -52,6 +54,10 @@ for i in xrange(K):
 	for ri in xrange(4):
 		square_total_rot = (square.rot_idx + ri) % 4
 
+		# only consider the pieces which actually have a match in the picture
+		if not img.square_has_neighbor(square, square_total_rot):
+			continue
+
 		min_ind_mgc, min_rot_mgc, _ = get_nearest_edge(i, ri, dists_mgc, K, type2)
 		min_s_mgc = img.pieces[min_ind_mgc]
 		min_s_total_rot_mgc = (min_s_mgc.rot_idx + min_rot_mgc) % 4
@@ -66,7 +72,7 @@ for i in xrange(K):
 		if cor_piece_ssd:
 			continue
 
-		save_squares(square, min_s_mgc, min_s_ssd, square.rot_idx, min_rot_mgc, min_rot_ssd, 
+		save_squares(square, min_s_mgc, min_s_ssd, square_total_rot, min_rot_mgc, min_rot_ssd, 
 			'./Images/differences/diff' + str(count) + '.jpg')
 		count += 1
 
@@ -75,7 +81,7 @@ for i in xrange(K):
 #scramble(img)
 #assemble_image(img)
 
-'''
+
 output_img = np.zeros([X, Y, 3])
 
 for i in xrange(X):
