@@ -72,7 +72,7 @@ for i in xrange(K):
 		if cor_piece_ssd:
 			continue
 
-		save_squares(square, min_s_mgc, min_s_ssd, square_total_rot, min_rot_mgc, min_rot_ssd, 
+		save_squares(square, min_s_mgc, min_s_ssd, ri, min_rot_mgc, min_rot_ssd, 
 			'./Images/differences/diff' + str(count) + '.jpg')
 		count += 1
 
