@@ -30,10 +30,9 @@ print correct_rots_list
 
 print np.mean(correct_pieces_list)
 print np.mean(correct_rots_list)
-
 '''
 
-
+random.seed(1122334455667)
 img = Image(img_filename)
 scramble(img, type2)
 
@@ -42,6 +41,13 @@ for sq in img.pieces:
 
 dists_mgc = compute_edge_dist(img, type2)
 dists_ssd = compute_edge_dist(img, type2, ssd=True)
+np.save('Data/dists_mgc', dists_mgc)
+np.save('Data/dists_ssd', dists_ssd)
+
+'''
+dists_mgc = np.load('Data/dists_mgc.npy')
+dists_ssd = np.load('Data/dists_ssd.npy')
+'''
 
 K = len(img.pieces)
 correct_pieces = 0
