@@ -2,7 +2,9 @@
 #train_img_filename = './Images/Landscape/mountain_color.jpg'
 img_filename = './Images/elephants/elephant.jpg'
 
-img_folder = './Images/elephants/'
+# ./Images/imData/ for the MIT dataset and ./Images/elephants/ for the elephant picture
+img_folder = './Images/imData/'
 
 # the side length (in pixels) of the nxn square puzzle piece
-P = 64
+# 64 for the elephant and 28 for the MIT data
+P = 28

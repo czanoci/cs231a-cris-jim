@@ -5,16 +5,16 @@ from constants import *
 from image import *
 import matplotlib.pyplot as plt
 
-def get_nonsym_compat(G, mu, S):
+def get_nonsym_compat(G, mu, S_inv):
 	compat = 0
 	G -= mu
-	S_inv = np.linalg.inv(S)
+	#S_inv = np.linalg.inv(S)
 	return np.sum(np.dot(G, S_inv) * G)
 
-def get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j):
+def get_compat(left_mean, left_covar_inv, right_mean, right_covar_inv, p_i, p_j):
 	G = p_j[:, 0, :] - p_i[:, P - 1, :]
-	compat = get_nonsym_compat(G, left_mean, left_covar) + \
-		  get_nonsym_compat(-G, right_mean, right_covar)
+	compat = get_nonsym_compat(G, left_mean, left_covar_inv) + \
+		  get_nonsym_compat(-G, right_mean, right_covar_inv)
 	return compat
 
 def get_ssd_compat(p_i, p_j):
@@ -46,7 +46,7 @@ def compute_edge_dist(img, type2=True, ssd=False):
 		for ri in xrange(4):
 			p_i = sq_i.get_rotated_pixels(ri)
 			left_mean = sq_i.get_left_mean(ri)
-			left_covar = sq_i.get_left_covar(ri)
+			left_covar_inv = sq_i.get_left_covar_inv(ri)
 			for j in range(i+1, K):
 				sq_j = img.pieces[j]
 				for rj in xrange(4):
@@ -55,11 +55,14 @@ def compute_edge_dist(img, type2=True, ssd=False):
 						continue
 
 					p_j = sq_j.get_rotated_pixels(rj)
-					right_mean = sq_j.get_right_mean(rj)
-					right_covar = sq_j.get_right_covar(rj)
 
-					dists[i, ri, j, rj] = get_compat(left_mean, left_covar, right_mean, right_covar, p_i, p_j) \
-											if not ssd else get_ssd_compat(p_i, p_j) 
+					if not ssd:
+						right_mean = sq_j.get_right_mean(rj)
+						right_covar_inv = sq_j.get_right_covar_inv(rj)
+						dists[i, ri, j, rj] = get_compat(left_mean, left_covar_inv, right_mean, right_covar_inv, p_i, p_j)
+					else:
+						dists[i, ri, j, rj] = get_ssd_compat(p_i, p_j)
+
 					dists[j, (rj + 2)%4, i, (ri + 2)%4] = dists[i, ri, j, rj]
 	return dists
 
@@ -94,7 +97,7 @@ def count_correct_matches(img, dists, type2=True):
 				if cor_rot:
 					correct_rots += 1
 					
-	return correct_pieces/total_neighbors, correct_rots/total_neighbors
+	return correct_pieces/(1.0*total_neighbors), correct_rots/(1.0*total_neighbors)
 
 def get_nearest_edge(i, ri, dists, K, type2=True):
 	min_dist = float("inf");

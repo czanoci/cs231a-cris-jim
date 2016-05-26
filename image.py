@@ -36,14 +36,14 @@ class Square:
 		self.pix = pixels
 
 		self.mean = np.zeros(4)
-		self.covar = np.zeros(4)
+		self.covar_inv = np.zeros(4)
 
 	def get_rotated_pixels(self, rot=0):
 		return np.rot90(self.pix, rot)
 
-	def compute_mean_and_covar(self):
+	def compute_mean_and_covar_inv(self):
 		means = []
-		covars = []
+		covars_inv = []
 
 		dummy_grad = np.array([ [0, 0, 0], [1, 1, 1], [-1, -1, -1], [0, 0, 1], [0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, -1, 0], [0, 0, -1] ])
 
@@ -52,13 +52,13 @@ class Square:
 			GL = pixels[:, P-1, :] - pixels[:, P-2, :]
 			mu = np.mean(GL, axis=0)
 			GL_plus_dummy = np.concatenate((GL, dummy_grad))
-			cov = np.cov(np.transpose(GL_plus_dummy))
+			cov_inv = np.linalg.inv(np.cov(np.transpose(GL_plus_dummy)))
 
 			means.append(mu)
-			covars.append(cov)
+			covars_inv.append(cov_inv)
 
 		self.mean = np.array(means)
-		self.covar = np.array(covars)
+		self.covar_inv = np.array(covars_inv)
 
 	def get_left_mean(self, rot=0):
 		return self.mean[rot]
@@ -66,11 +66,11 @@ class Square:
 	def get_right_mean(self, rot=0):
 		return self.mean[(rot+2)%4]
 
-	def get_left_covar(self, rot=0):
-		return self.covar[rot]
+	def get_left_covar_inv(self, rot=0):
+		return self.covar_inv[rot]
 
-	def get_right_covar(self, rot=0):
-		return self.covar[(rot+2)%4]
+	def get_right_covar_inv(self, rot=0):
+		return self.covar_inv[(rot+2)%4]
 
 
 

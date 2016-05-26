@@ -10,7 +10,7 @@ from edge_scores import *
 type2 = True
 ssd = False
 
-'''
+
 correct_pieces_list = []
 correct_rots_list = []
 
@@ -19,17 +19,17 @@ for f in os.listdir(img_folder):
 	img = Image(img_folder + f)
 	scramble(img, type2)
 	for sq in img.pieces:
-		sq.compute_mean_and_covar()
+		sq.compute_mean_and_covar_inv()
 	dists = compute_edge_dist(img, type2, ssd)
 	correct_pieces, correct_rots = count_correct_matches(img, dists, type2)
 	correct_pieces_list.append(correct_pieces)
 	correct_rots_list.append(correct_rots)
-
-print correct_pieces_list
-print correct_rots_list
+	print correct_pieces_list
+	print correct_rots_list
 
 print np.mean(correct_pieces_list)
 print np.mean(correct_rots_list)
+
 '''
 
 random.seed(1122334455667)
@@ -37,17 +37,17 @@ img = Image(img_filename)
 scramble(img, type2)
 
 for sq in img.pieces:
-	sq.compute_mean_and_covar()
+	sq.compute_mean_and_covar_inv()
 
 dists_mgc = compute_edge_dist(img, type2)
 dists_ssd = compute_edge_dist(img, type2, ssd=True)
 np.save('Data/dists_mgc', dists_mgc)
 np.save('Data/dists_ssd', dists_ssd)
 
-'''
+
 dists_mgc = np.load('Data/dists_mgc.npy')
 dists_ssd = np.load('Data/dists_ssd.npy')
-'''
+
 
 K = len(img.pieces)
 correct_pieces = 0
@@ -82,7 +82,7 @@ for i in xrange(K):
 			'./Images/differences/diff' + str(count) + '.jpg')
 		count += 1
 
-'''
+
 #img = Image(img_filename)
 #scramble(img)
 #assemble_image(img)
