@@ -5,11 +5,36 @@ from constants import *
 from image import *
 import matplotlib.pyplot as plt
 import os
+from heapq import *
 from edge_scores import *
+from DSFNode import *
 
+numNodes = 2000
+forest = DisjointSetForest(numNodes)
+
+edgeHeap = []
+for i in xrange(numNodes):
+	for j in xrange(numNodes):
+		if i != j:
+			edgeHeap.append((random.random(), i, j, 0, 0))
+heapify(edgeHeap)
+
+while forest.get_num_clusters() > 1:
+	edge = heappop(edgeHeap)
+	i = edge[1]
+	j = edge[2]
+	forest.union(i, j)
+
+rep_0 = forest.find(0)
+rep_last = forest.find(numNodes - 1)
+print rep_0.get_order(), rep_last.get_order(), rep_0.get_data(), rep_last.get_data()
+
+
+
+
+'''
 type2 = True
 ssd = False
-
 
 correct_pieces_list = []
 correct_rots_list = []
@@ -30,11 +55,11 @@ for f in os.listdir(img_folder):
 print np.mean(correct_pieces_list)
 print np.mean(correct_rots_list)
 
-'''
 
 random.seed(1122334455667)
 img = Image(img_filename)
 scramble(img, type2)
+print len(img.pieces)
 
 for sq in img.pieces:
 	sq.compute_mean_and_covar_inv()
