@@ -89,3 +89,38 @@ class DisjointSetForest:
 			piece_rot_small = edgeNum_i
 
 		small_clust_rot = (piece_big.localRot - piece_small.localRot) % 4
+
+		# DETERMINE TRANSLATION
+
+		coords_small = self.pieceCoordMap[n.pieceIndex]
+		small_rot_mat = self.rotMat(small_clust_rot)
+		
+
+
+	def reconstruct(self, n):
+		# Need to get pieces
+		coords = self.pieceCoordMap[n.pieceIndex]
+		min_x = min(coords[0, :])
+		min_y = min(coords[1, :])
+		max_x = max(coords[0, :])
+		max_y = max(coords[1, :])
+
+		H = (max_y - min_y + 1) * P
+		W = (max_x - min_x + 1) * P
+		img = np.zeros([H, W, 3])
+
+		n.localCoords = np.array([[-min_x],[-min_y]])
+		for node in self.nodes:
+			i = node.pieceIndex
+			find(i)
+			sq = pieces(i)
+			pixels = sq.get_rotated_pixels(node.localRot)
+			x = node.localCoords[0, 0]
+			y = node.localCoords[1, 0]
+			img[y*P:(y + 1)*P, x*P:(x + 1)*P, :] = pixels
+		return img
+
+
+
+
+
