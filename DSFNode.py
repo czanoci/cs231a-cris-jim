@@ -70,7 +70,7 @@ class DisjointSetForest:
 		# originally, the numbers passed for the edgeNum aren't correct for j, since it is really the number
 		# of rotations needed to apply to the piece, not the edge number.  This corrects it and makes sure that
 		# the encoding of the edge numbers is consistent
-		edgeNum_j = (edgeNum_j + 2) % 4
+		# edgeNum_j = (edgeNum_j + 2) % 4
 
 		# determine the small and the big cluster
 		if rep_i.clusterSize >= rep_j.clusterSize:
@@ -80,6 +80,7 @@ class DisjointSetForest:
 			piece_small = self.nodes[j]
 			piece_rot_big = edgeNum_i
 			piece_rot_small = edgeNum_j
+			big_is_left = True
 		else:
 			clust_big = rep_j
 			clust_small = rep_i
@@ -87,7 +88,9 @@ class DisjointSetForest:
 			piece_small = self.nodes[i]
 			piece_rot_big = edgeNum_j
 			piece_rot_small = edgeNum_i
+			big_is_left = False
 
+		# compute the amount we will have to rotate the small cluster to orient it the same as the large
 		small_clust_rot = (piece_big.localRot - piece_small.localRot) % 4
 
 		# DETERMINE TRANSLATION
