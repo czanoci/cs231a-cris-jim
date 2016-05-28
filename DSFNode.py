@@ -91,16 +91,37 @@ class DisjointSetForest:
 			big_is_left = False
 
 		# compute the amount we will have to rotate the small cluster to orient it the same as the large
-		small_clust_rot = (piece_big.localRot - piece_small.localRot) % 4
+		small_clust_rot = (piece_rot_small - piece_rot_big + piece_big.localRot - piece_small.localRot) % 4
+		piece_small_switch = (piece_rot_big - piece_big.localRot) % 4 if big_is_left else (piece_rot_big + 2 - piece_big.localRot) % 4
+		if piece_small_switch == 0:
+			offset = np.array([[1], [0]])
+		elif piece_small_switch == 1:
+			offset = np.array([[0], [1]])
+		elif piece_small_switch == 2:
+			offset = np.array([[-1], [0]])
+		else:
+			offset = np.array([[0], [-1]])
 
-		# DETERMINE TRANSLATION small_clust_trans
+		small_rot_mat = self.rotMat(small_clust_rot)
+		small_clust_trans = piece_big.localCoords + offset - np.dot(small_rot_mat, piece_small.localCoords)
+
 
 		coords_small = self.pieceCoordMap[piece_small.pieceIndex]
-		small_rot_mat = self.rotMat(small_clust_rot)
 		new_coords_small = np.dot(small_rot_mat, coords_small) + small_clust_trans
 		coords_big = self.pieceCoordMap[piece_big.pieceIndex]
 		is_disjoint = set(map(tuple, new_coords_small.T)).isdisjoint(map(tuple, coords_big.T))
 
+		if not is_disjoint:
+			return False
+
+		clust_small.localCoords = small_clust_trans
+		clust_small.localRot = small_clust_rot
+		clust_small.parent = clust_big
+		clust_big.clusterSize += clust_small.clusterSize
+		self.pieceCoordMap[piece_big.pieceIndex] = np.concatenate((coords_big, new_coords_small), axis = 1)
+		del self.pieceCoordMap[piece_small.pieceIndex]
+		
+		return True
 
 	def reconstruct(self, n):
 		# Need to get pieces
