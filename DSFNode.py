@@ -1,4 +1,6 @@
 
+import numpy as np
+from constants import *
 
 class DSFNode:
 	def __init__(self, i):
@@ -50,10 +52,10 @@ class DisjointSetForest:
 	# note that because we are doing path compression, these are with respect to the representative
 	def find_node(self, n):
 		if n.parent != n:
-			rep, parRot, parCoords = self.find_node(n.get_parent())
+			rep, parRot, parCoords = self.find_node(n.parent)
 			n.parent = rep
 			n.localRot = (n.localRot + parRot) % 4
-			n.localCoords = parCoords + np.dot(rotMat(parRot), n.localCoords)
+			n.localCoords = parCoords + np.dot(self.rotMat(parRot), n.localCoords)
 
 		return n.parent, n.localRot, n.localCoords
 
@@ -120,29 +122,56 @@ class DisjointSetForest:
 		clust_big.clusterSize += clust_small.clusterSize
 		self.pieceCoordMap[piece_big.pieceIndex] = np.concatenate((coords_big, new_coords_small), axis = 1)
 		del self.pieceCoordMap[piece_small.pieceIndex]
+		self.numClusters -= 1
 		
 		return True
 
-	def reconstruct(self, n):
+	def reconstruct(self, clustIndex, pieces, debug = False):
+
+		if debug:
+			print ''
+			print clustIndex
 		# Need to get pieces
-		coords = self.pieceCoordMap[n.pieceIndex]
+		rep, _, _ = self.find(clustIndex)
+
+		coords = self.pieceCoordMap[rep.pieceIndex]
+		if debug:
+			print coords
 		min_x = min(coords[0, :])
 		min_y = min(coords[1, :])
 		max_x = max(coords[0, :])
 		max_y = max(coords[1, :])
 
+		if debug:
+			print min_x, min_y, max_x, max_y
+
 		H = (max_y - min_y + 1) * P
 		W = (max_x - min_x + 1) * P
 		img = np.zeros([H, W, 3])
 
-		n.localCoords = np.array([[-min_x],[-min_y]])
+
+		if debug:
+			print H, W
+
+		rep.localCoords = np.array([[-min_x],[-min_y]])
 		for node in self.nodes:
 			i = node.pieceIndex
-			find(i)
-			sq = pieces(i)
+			if debug and i == 382:
+				print i, node.localCoords
+			i_rep, _, _ = self.find(i)
+			if i_rep != rep:
+				continue
+
+
+			if debug:
+				print i, node.localCoords
+
+			sq = pieces[i]
 			pixels = sq.get_rotated_pixels(node.localRot)
 			x = node.localCoords[0, 0]
 			y = node.localCoords[1, 0]
+			if x < 0 or y < 0:
+				print 'found neg'
 			img[y*P:(y + 1)*P, x*P:(x + 1)*P, :] = pixels
 		return img
 
