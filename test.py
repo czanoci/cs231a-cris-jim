@@ -32,7 +32,7 @@ def dsf_reconstruction_test():
 			print 'reconstructing', num_c
 
 			for index in forest.pieceCoordMap.keys():
-				pixels = forest.reconstruct(index, img.pieces, debug = (num_c == 534 and index == 194))
+				pixels = forest.reconstruct(index, img.pieces, debug = (num_c == 522 and index == 283))
 				#cv2.imwrite('./Images/Reconstruction_Generations/gen' + str(K - num_c) + '.cluster' + str(index) + '.jpg', pixels)
 
 

@@ -1,4 +1,4 @@
-
+import sys
 import numpy as np
 from constants import *
 
@@ -53,9 +53,10 @@ class DisjointSetForest:
 	def find_node(self, n):
 		if n.parent != n:
 			rep, parRot, parCoords = self.find_node(n.parent)
-			n.parent = rep
-			n.localRot = (n.localRot + parRot) % 4
-			n.localCoords = parCoords + np.dot(self.rotMat(parRot), n.localCoords)
+			if n.parent != rep:
+				n.parent = rep
+				n.localRot = (n.localRot + parRot) % 4
+				n.localCoords = parCoords + np.dot(self.rotMat(parRot), n.localCoords)
 
 		return n.parent, n.localRot, n.localCoords
 
@@ -92,6 +93,7 @@ class DisjointSetForest:
 			piece_rot_small = edgeNum_i
 			big_is_left = False
 
+
 		# compute the amount we will have to rotate the small cluster to orient it the same as the large
 		small_clust_rot = (piece_rot_small - piece_rot_big + piece_big.localRot - piece_small.localRot) % 4
 		piece_small_switch = (piece_rot_big - piece_big.localRot) % 4 if big_is_left else (piece_rot_big + 2 - piece_big.localRot) % 4
@@ -104,24 +106,26 @@ class DisjointSetForest:
 		else:
 			offset = np.array([[0], [-1]])
 
+
 		small_rot_mat = self.rotMat(small_clust_rot)
 		small_clust_trans = piece_big.localCoords + offset - np.dot(small_rot_mat, piece_small.localCoords)
 
 
-		coords_small = self.pieceCoordMap[piece_small.pieceIndex]
+		coords_small = self.pieceCoordMap[clust_small.pieceIndex]
 		new_coords_small = np.dot(small_rot_mat, coords_small) + small_clust_trans
-		coords_big = self.pieceCoordMap[piece_big.pieceIndex]
+		coords_big = self.pieceCoordMap[clust_big.pieceIndex]
 		is_disjoint = set(map(tuple, new_coords_small.T)).isdisjoint(map(tuple, coords_big.T))
 
 		if not is_disjoint:
+			print 'Rejected match'
 			return False
 
 		clust_small.localCoords = small_clust_trans
 		clust_small.localRot = small_clust_rot
 		clust_small.parent = clust_big
 		clust_big.clusterSize += clust_small.clusterSize
-		self.pieceCoordMap[piece_big.pieceIndex] = np.concatenate((coords_big, new_coords_small), axis = 1)
-		del self.pieceCoordMap[piece_small.pieceIndex]
+		self.pieceCoordMap[clust_big.pieceIndex] = np.concatenate((coords_big, new_coords_small), axis = 1)
+		del self.pieceCoordMap[clust_small.pieceIndex]
 		self.numClusters -= 1
 		
 		return True
@@ -153,10 +157,10 @@ class DisjointSetForest:
 		if debug:
 			print H, W
 
-		rep.localCoords = np.array([[-min_x],[-min_y]])
+		#offset = np.array([[-min_x],[-min_y]])
 		for node in self.nodes:
 			i = node.pieceIndex
-			if debug and i == 382:
+			if debug and i == 134:
 				print i, node.localCoords
 			i_rep, _, _ = self.find(i)
 			if i_rep != rep:
@@ -168,10 +172,9 @@ class DisjointSetForest:
 
 			sq = pieces[i]
 			pixels = sq.get_rotated_pixels(node.localRot)
-			x = node.localCoords[0, 0]
-			y = node.localCoords[1, 0]
-			if x < 0 or y < 0:
-				print 'found neg'
+			x = node.localCoords[0, 0] - min_x
+			y = node.localCoords[1, 0] - min_y
+
 			img[y*P:(y + 1)*P, x*P:(x + 1)*P, :] = pixels
 		return img
 
