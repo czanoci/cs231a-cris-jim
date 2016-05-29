@@ -94,7 +94,7 @@ def scramble(img, type2=True):
 	random.shuffle(pieces)
 	img.pieces = np.array(pieces)
 
-def assemble_image(img):
+def assemble_image(img, filename):
 	H, W, _ = img.reduced.shape
 	pieces = np.reshape(img.pieces, (H/P, W/P))
 	reconstruct = np.zeros([H, W, 3])
@@ -102,7 +102,7 @@ def assemble_image(img):
 		for j in xrange(W/P):
 			reconstruct[i*P:(i+1)*P, j*P:(j+1)*P, :] = pieces[i, j].pix
 
-	cv2.imwrite("./Images/reconstruct.jpg", reconstruct)
+	cv2.imwrite(filename, reconstruct)
 
 def save_squares(square, match1, match2, s_rot, m1_rot, m2_rot, filename):
 	pixels = np.zeros([2*P, 2*P, 3])

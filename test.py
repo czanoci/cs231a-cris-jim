@@ -8,12 +8,62 @@ import os
 from heapq import *
 from edge_scores import *
 from DSFNode import *
+import sys
+import string
+
+A = np.array([[7, 6, 5, 4], [3, 2, 1, 0]])
+print np.partition(A, 1)[1]
+sys.exit()
+
+def dsf_reconstruct_dataset():
+	type2 = True
+
+	for f in os.listdir(img_folder):
+		print f
+		picName = f[:string.rfind(f, '.')]
+		reconDir = './Images/Reconstruction_Generations/' + picName + '/'
+		if not os.path.exists(reconDir):
+			os.makedirs(reconDir)
+
+		img = Image(img_folder + f)
+		scramble(img, type2)
+		assemble_image(img, reconDir + 'beginning.jpg')
+		K = len(img.pieces)
+		for sq in img.pieces:
+			sq.compute_mean_and_covar_inv()
+
+		dists_mgc = compute_edge_dist(img, type2)
+		# Really dumb way to do things
+		dists_list = []
+		for i in xrange(K):
+			for edgeNum_i in xrange(4):
+				for j in xrange(K):
+					for edgeNum_j in xrange(4):
+						dists_list.append(((i, j, edgeNum_i, edgeNum_j), dists_mgc[i, edgeNum_i, j, edgeNum_j]))
+		dists_list.sort(key=lambda x: x[1], reverse=True)
+
+		forest = DisjointSetForest(K)
+
+		while forest.numClusters > 1:
+			edge = dists_list.pop()[0]
+			clust_index = forest.union(edge[0], edge[1], edge[2], edge[3])
+			if clust_index != -1:
+				num_c = forest.numClusters
+
+				print 'reconstructing', num_c
+				pixels = forest.reconstruct(clust_index, img.pieces)
+				cv2.imwrite(reconDir + 'gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
+
+		for index in forest.pieceCoordMap.keys():
+			pixels = forest.reconstruct(index, img.pieces)
+			cv2.imwrite(reconDir + 'final.jpg', pixels)
 
 def dsf_reconstruction_test():
 	type2 = True
 	random.seed(1122334455667)
 	img = Image(img_filename)
 	scramble(img, type2)
+	assemble_image(img)
 	K = len(img.pieces)
 	print K
 
@@ -40,7 +90,7 @@ def dsf_reconstruction_test():
 			num_c = forest.numClusters
 
 			print 'reconstructing', num_c
-			pixels = forest.reconstruct(clust_index, img.pieces, debug = False)
+			pixels = forest.reconstruct(clust_index, img.pieces)
 			cv2.imwrite('./Images/Reconstruction_Generations/gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
 
 		'''
@@ -53,7 +103,7 @@ def dsf_reconstruction_test():
 				#cv2.imwrite('./Images/Reconstruction_Generations/gen' + str(K - num_c) + '.cluster' + str(index) + '.jpg', pixels)
 		'''
 	for index in forest.pieceCoordMap.keys():
-		pixels = forest.reconstruct(index, img.pieces, debug = False)
+		pixels = forest.reconstruct(index, img.pieces)
 		cv2.imwrite('./Images/Reconstruction_Generations/final.jpg', pixels)
 
 
@@ -147,4 +197,5 @@ def save_ssd_wrong_pics():
 			count += 1
 
 
-dsf_reconstruction_test()
+#dsf_reconstruction_test()
+dsf_reconstruct_dataset()

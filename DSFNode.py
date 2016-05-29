@@ -93,24 +93,11 @@ class DisjointSetForest:
 			piece_rot_small = edgeNum_i
 			big_is_left = False
 
-		if clust_big.pieceIndex == 7 and clust_small.pieceIndex == 4:
-			print clust_big.localRot, clust_big.localCoords 
-			print clust_small.localRot, clust_small.localCoords
-			print piece_big.localRot, piece_big.localCoords 
-			print piece_small.localRot, piece_small.localCoords
-			print piece_rot_big, piece_rot_small
-			print big_is_left
-
 		# compute the amount we will have to rotate the small cluster to orient it the same as the large
 		# small_clust_rot = (piece_rot_small - piece_rot_big + piece_big.localRot - piece_small.localRot) % 4
 		small_clust_rot = (piece_rot_small - piece_rot_big + piece_big.localRot - piece_small.localRot) % 4
 		# is this better?? piece_small_switch = (-piece_rot_big + piece_big.localRot) % 4 if big_is_left else (-piece_rot_big + 2 + piece_big.localRot) % 4
 		piece_small_switch = (-piece_rot_big + piece_big.localRot) % 4 if big_is_left else (-piece_rot_big + 2 + piece_big.localRot) % 4
-
-		if clust_big.pieceIndex == 7 and clust_small.pieceIndex == 4:
-			print small_clust_rot
-			print piece_small_switch
-
 
 		if piece_small_switch == 0:
 			offset = np.array([[1], [0]])
@@ -144,44 +131,26 @@ class DisjointSetForest:
 		
 		return clust_big.pieceIndex
 
-	def reconstruct(self, clustIndex, pieces, debug = False):
-
-		if debug:
-			print ''
-			print clustIndex
+	def reconstruct(self, clustIndex, pieces):
 		# Need to get pieces
 		rep, _, _ = self.find(clustIndex)
 
 		coords = self.pieceCoordMap[rep.pieceIndex]
-		if debug:
-			print coords
 		min_x = min(coords[0, :])
 		min_y = min(coords[1, :])
 		max_x = max(coords[0, :])
 		max_y = max(coords[1, :])
 
-		if debug:
-			print min_x, min_y, max_x, max_y
-
 		H = (max_y - min_y + 1) * P
 		W = (max_x - min_x + 1) * P
 		img = np.zeros([H, W, 3])
 
-
-		if debug:
-			print H, W
-
 		#offset = np.array([[-min_x],[-min_y]])
 		for node in self.nodes:
 			i = node.pieceIndex
-			if debug and i == 134:
-				print i, node.localCoords
 			i_rep, _, _ = self.find(i)
 			if i_rep != rep:
 				continue
-
-			if debug:
-				print i, node.localCoords
 
 			sq = pieces[i]
 			pixels = sq.get_rotated_pixels(node.localRot)

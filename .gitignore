@@ -1,6 +1,7 @@
 *.pyc
 differences/
 Data/
+Reconstruction_Generations/
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
