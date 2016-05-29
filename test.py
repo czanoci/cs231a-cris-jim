@@ -21,19 +21,40 @@ def dsf_reconstruction_test():
 		sq.compute_mean_and_covar_inv()
 
 
-	#dists_mgc = compute_edge_dist(img, type2)
+	dists_mgc = compute_edge_dist(img, type2)
+	# Really dumb way to do things
+	dists_list = []
+	for i in xrange(K):
+		for edgeNum_i in xrange(4):
+			for j in xrange(K):
+				for edgeNum_j in xrange(4):
+					dists_list.append(((i, j, edgeNum_i, edgeNum_j), dists_mgc[i, edgeNum_i, j, edgeNum_j]))
+	dists_list.sort(key=lambda x: x[1], reverse=True)
 
 	forest = DisjointSetForest(K)
 
 	while forest.numClusters > 1:
-		if forest.union(random.randint(0, K-1), random.randint(0, K-1), random.randint(0,3), random.randint(0,3)):
+		edge = dists_list.pop()[0]
+		clust_index = forest.union(edge[0], edge[1], edge[2], edge[3])
+		if clust_index != -1:
 			num_c = forest.numClusters
 
 			print 'reconstructing', num_c
+			pixels = forest.reconstruct(clust_index, img.pieces, debug = False)
+			cv2.imwrite('./Images/Reconstruction_Generations/gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
 
+		'''
+		if forest.union(random.randint(0, K-1), random.randint(0, K-1), random.randint(0,3), random.randint(0,3)):
+			get_num_clusters = forest.numClusters
+
+			print 'reconstructing', num_c
 			for index in forest.pieceCoordMap.keys():
-				pixels = forest.reconstruct(index, img.pieces, debug = (num_c == 522 and index == 283))
+				pixels = forest.reconstruct(index, img.pieces, debug = False)
 				#cv2.imwrite('./Images/Reconstruction_Generations/gen' + str(K - num_c) + '.cluster' + str(index) + '.jpg', pixels)
+		'''
+	for index in forest.pieceCoordMap.keys():
+		pixels = forest.reconstruct(index, img.pieces, debug = False)
+		cv2.imwrite('./Images/Reconstruction_Generations/final.jpg', pixels)
 
 
 

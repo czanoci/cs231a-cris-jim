@@ -68,7 +68,7 @@ class DisjointSetForest:
 
 		# check that the pieces aren't already in the same cluster
 		if rep_i == rep_j:
-			return False
+			return -1
 
 		# originally, the numbers passed for the edgeNum aren't correct for j, since it is really the number
 		# of rotations needed to apply to the piece, not the edge number.  This corrects it and makes sure that
@@ -93,10 +93,25 @@ class DisjointSetForest:
 			piece_rot_small = edgeNum_i
 			big_is_left = False
 
+		if clust_big.pieceIndex == 7 and clust_small.pieceIndex == 4:
+			print clust_big.localRot, clust_big.localCoords 
+			print clust_small.localRot, clust_small.localCoords
+			print piece_big.localRot, piece_big.localCoords 
+			print piece_small.localRot, piece_small.localCoords
+			print piece_rot_big, piece_rot_small
+			print big_is_left
 
 		# compute the amount we will have to rotate the small cluster to orient it the same as the large
+		# small_clust_rot = (piece_rot_small - piece_rot_big + piece_big.localRot - piece_small.localRot) % 4
 		small_clust_rot = (piece_rot_small - piece_rot_big + piece_big.localRot - piece_small.localRot) % 4
-		piece_small_switch = (piece_rot_big - piece_big.localRot) % 4 if big_is_left else (piece_rot_big + 2 - piece_big.localRot) % 4
+		# is this better?? piece_small_switch = (-piece_rot_big + piece_big.localRot) % 4 if big_is_left else (-piece_rot_big + 2 + piece_big.localRot) % 4
+		piece_small_switch = (-piece_rot_big + piece_big.localRot) % 4 if big_is_left else (-piece_rot_big + 2 + piece_big.localRot) % 4
+
+		if clust_big.pieceIndex == 7 and clust_small.pieceIndex == 4:
+			print small_clust_rot
+			print piece_small_switch
+
+
 		if piece_small_switch == 0:
 			offset = np.array([[1], [0]])
 		elif piece_small_switch == 1:
@@ -117,8 +132,7 @@ class DisjointSetForest:
 		is_disjoint = set(map(tuple, new_coords_small.T)).isdisjoint(map(tuple, coords_big.T))
 
 		if not is_disjoint:
-			print 'Rejected match'
-			return False
+			return -1
 
 		clust_small.localCoords = small_clust_trans
 		clust_small.localRot = small_clust_rot
@@ -128,7 +142,7 @@ class DisjointSetForest:
 		del self.pieceCoordMap[clust_small.pieceIndex]
 		self.numClusters -= 1
 		
-		return True
+		return clust_big.pieceIndex
 
 	def reconstruct(self, clustIndex, pieces, debug = False):
 
@@ -166,7 +180,6 @@ class DisjointSetForest:
 			if i_rep != rep:
 				continue
 
-
 			if debug:
 				print i, node.localCoords
 
@@ -175,7 +188,7 @@ class DisjointSetForest:
 			x = node.localCoords[0, 0] - min_x
 			y = node.localCoords[1, 0] - min_y
 
-			img[y*P:(y + 1)*P, x*P:(x + 1)*P, :] = pixels
+			img[(H - (y + 1)*P):(H - y*P), x*P:(x + 1)*P, :] = pixels
 		return img
 
 
