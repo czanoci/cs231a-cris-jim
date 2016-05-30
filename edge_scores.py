@@ -34,11 +34,10 @@ def is_correct_neighbor(sq, sq_rot, nbr, nbr_rot):
 	return correct_piece, correct_piece and sq_rot == nbr_rot
 
 
-def compute_edge_dist(img, type2=True, ssd=False):
+def compute_edge_dist(img, type2=True, ssd=False, divideBySecond=True):
 	K = len(img.pieces)
 
 	dists = np.zeros([K, 4, K, 4])
-
 	for i in xrange(K):
 		sq_i = img.pieces[i]
 		if i % 10 == 0:
@@ -47,16 +46,14 @@ def compute_edge_dist(img, type2=True, ssd=False):
 			p_i = sq_i.get_rotated_pixels(ri)
 			left_mean = sq_i.get_left_mean(ri)
 			left_covar_inv = sq_i.get_left_covar_inv(ri)
-			for j in range(i+1, K):
+			for j in range(i, K):
 				sq_j = img.pieces[j]
 				for rj in xrange(4):
-
-					if (not type2) and ri != rj:
-						continue
-
 					p_j = sq_j.get_rotated_pixels(rj)
 
-					if not ssd:
+					if i == j or ((not type2) and ri != rj):
+						dists[i, ri, j, rj] = float("inf")
+					elif not ssd:
 						right_mean = sq_j.get_right_mean(rj)
 						right_covar_inv = sq_j.get_right_covar_inv(rj)
 						dists[i, ri, j, rj] = get_compat(left_mean, left_covar_inv, right_mean, right_covar_inv, p_i, p_j)
@@ -64,6 +61,15 @@ def compute_edge_dist(img, type2=True, ssd=False):
 						dists[i, ri, j, rj] = get_ssd_compat(p_i, p_j)
 
 					dists[j, (rj + 2)%4, i, (ri + 2)%4] = dists[i, ri, j, rj]
+
+	eps = 0.000001
+	dists += eps
+
+	for i in xrange(K):
+		for ri in xrange(4):
+			second_smallest = np.partition(dists[i, ri, :, :], 1, axis=None)[1]
+			dists[i, ri, :, :] /= second_smallest
+
 	return dists
 
 
