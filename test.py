@@ -138,7 +138,7 @@ def compute_edge_correct_percents():
 		scramble(img, type2)
 		for sq in img.pieces:
 			sq.compute_mean_and_covar_inv()
-		dists = compute_edge_dist(img, type2, ssd)
+		dists = compute_edge_dist(img, type2, ssd, divideBySecond=False)
 		correct_pieces, correct_rots = count_correct_matches(img, dists, type2)
 		correct_pieces_list.append(correct_pieces)
 		correct_rots_list.append(correct_rots)
@@ -191,6 +191,6 @@ def save_ssd_wrong_pics():
 				'./Images/differences/diff' + str(count) + '.jpg')
 			count += 1
 
-
-dsf_reconstruction_test()
-# dsf_reconstruct_dataset()
+compute_edge_correct_percents()
+#dsf_reconstruction_test()
+#dsf_reconstruct_dataset()

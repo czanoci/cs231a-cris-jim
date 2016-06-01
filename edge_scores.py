@@ -62,13 +62,14 @@ def compute_edge_dist(img, type2=True, ssd=False, divideBySecond=True):
 
 					dists[j, (rj + 2)%4, i, (ri + 2)%4] = dists[i, ri, j, rj]
 
-	eps = 0.000001
-	dists += eps
+	if divideBySecond:
+		eps = 0.000001
+		dists += eps
 
-	for i in xrange(K):
-		for ri in xrange(4):
-			second_smallest = np.partition(dists[i, ri, :, :], 1, axis=None)[1]
-			dists[i, ri, :, :] /= second_smallest
+		for i in xrange(K):
+			for ri in xrange(4):
+				second_smallest = np.partition(dists[i, ri, :, :], 1, axis=None)[1]
+				dists[i, ri, :, :] /= second_smallest
 
 	return dists
 
