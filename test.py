@@ -75,7 +75,9 @@ def dsf_reconstruction_test():
 	for sq in img.pieces:
 		sq.compute_mean_and_covar_inv()
 
-	dists_mgc = compute_edge_dist(img, type2)
+	# dists_mgc = compute_edge_dist(img, type2)
+	# np.save('./Data/6', dists_mgc)
+	dists_mgc = np.load('./Data/6.npy')
 
 	dists_list = []
 	for i in xrange(K):
@@ -97,13 +99,25 @@ def dsf_reconstruction_test():
 
 			print 'reconstructing', num_c, edge
 			pixels = forest.reconstruct(clust_index, img.pieces)
-			cv2.imwrite(reconDir + 'gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
+			# cv2.imwrite(reconDir + 'gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
 
 	print 'ended with', len(dists_list), 'edges'
 
+	forest.collapse()
+
 	for index in forest.pieceCoordMap.keys():
 		pixels = forest.reconstruct(index, img.pieces)
-		cv2.imwrite(reconDir + 'final.jpg', pixels)
+		cv2.imwrite(reconDir + 'pre_trim.jpg', pixels)
+
+	index_grid, occupied_grid = forest.get_orig_trim_array()
+	pixels = forest.reconstruct_trim(index_grid, img.pieces)
+	cv2.imwrite(reconDir + 'pre_trim_index_grid.jpg', pixels)
+
+	frame_W = img.W / P
+	frame_H = img.H / P
+	trim_index_grid, extra_piece_list = forest.trim(index_grid, occupied_grid, frame_W, frame_H)
+	pixels = forest.reconstruct_trim(trim_index_grid, img.pieces)
+	cv2.imwrite(reconDir + 'trim_index_grid.jpg', pixels)
 
 def dsf_test():
 	numNodes = 2000
@@ -191,6 +205,6 @@ def save_ssd_wrong_pics():
 				'./Images/differences/diff' + str(count) + '.jpg')
 			count += 1
 
-compute_edge_correct_percents()
-#dsf_reconstruction_test()
-#dsf_reconstruct_dataset()
+# compute_edge_correct_percents()
+dsf_reconstruction_test()
+# dsf_reconstruct_dataset()

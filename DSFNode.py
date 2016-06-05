@@ -10,22 +10,6 @@ class DSFNode:
 		self.localRot = 0
 		self.localCoords = np.array([[0],[0]])
 
-	# def get_parent(self):
-	# 	return self.parent
-
-	# def get_clusterSize(self):
-	# 	return self.clusterSize
-
-	# def set_parent(self, p):
-	# 	self.parent = p
-
-	# def increment_clusterSize(self, cs):
-	# 	self.clusterSize += cs
-
-	# def get_pieceIndex(self):
-	# 	return self.data
-
-
 class DisjointSetForest:
 	def __init__(self, numNodes):
 		self.numClusters = numNodes
@@ -108,10 +92,8 @@ class DisjointSetForest:
 		else:
 			offset = np.array([[0], [-1]])
 
-
 		small_rot_mat = self.rotMat(small_clust_rot)
 		small_clust_trans = piece_big.localCoords + offset - np.dot(small_rot_mat, piece_small.localCoords)
-
 
 		coords_small = self.pieceCoordMap[clust_small.pieceIndex]
 		new_coords_small = np.dot(small_rot_mat, coords_small) + small_clust_trans
@@ -145,7 +127,6 @@ class DisjointSetForest:
 		W = (max_x - min_x + 1) * P
 		img = np.zeros([H, W, 3])
 
-		#offset = np.array([[-min_x],[-min_y]])
 		for node in self.nodes:
 			i = node.pieceIndex
 			i_rep, _, _ = self.find(i)
@@ -160,7 +141,85 @@ class DisjointSetForest:
 			img[(H - (y + 1)*P):(H - y*P), x*P:(x + 1)*P, :] = pixels
 		return img
 
+	def reconstruct_trim(self, index_grid, pieces):
+		[H, W, _] = index_grid.shape
+		img = np.zeros([H*P, W*P, 3])
 
+		for x in xrange(W):
+			for y in xrange(H):
+				if index_grid[y, x, 0] < 0:
+					continue
+					
+				sq = pieces[index_grid[y, x, 0]]
+				pixels = sq.get_rotated_pixels(index_grid[y, x, 1])
 
+				img[(H*P - (y + 1)*P):(H*P - y*P), x*P:(x + 1)*P, :] = pixels
+		return img		
+
+	def collapse(self):
+		for node in self.nodes:
+			i = node.pieceIndex
+			self.find(i)
+
+	def get_orig_trim_array(self):
+		rep, _, _ = self.find(0)
+		coords = self.pieceCoordMap[rep.pieceIndex]
+		min_x = min(coords[0, :])
+		min_y = min(coords[1, :])
+		max_x = max(coords[0, :])
+		max_y = max(coords[1, :])
+
+		index_grid = -1 * np.ones([max_y - min_y + 1, max_x - min_x + 1, 2])
+		for node in self.nodes:
+			x = node.localCoords[0, 0] - min_x
+			y = node.localCoords[1, 0] - min_y
+			index_grid[y, x, 0] = node.pieceIndex
+			index_grid[y, x, 1] = node.localRot
+
+		occupied_grid = np.copy(index_grid[:, :, 0])
+		occupied_grid[occupied_grid >= 0] = 1
+		occupied_grid[occupied_grid < 0] = 0
+		return index_grid, occupied_grid
+
+	def trim(self, index_grid, occupied_grid, W, H):
+		x_0, y_0, piece_count_0 = self.get_best_frame_loc(occupied_grid, W, H)
+		x_1, y_1, piece_count_1 = self.get_best_frame_loc(occupied_grid, H, W)
+
+		if piece_count_0 > piece_count_1:
+			frame_x = x_0
+			frame_y = y_0
+			frame_w = W
+			frame_h = H
+		else:
+			frame_x = x_1
+			frame_y = y_1
+			frame_w = H
+			frame_h = W
+
+		extra_piece_list = []
+		[H_prime, W_prime] = occupied_grid.shape
+		for x in xrange(W_prime):
+			for y in xrange(H_prime):
+				if (x < frame_x or x >= frame_x + frame_w or y < frame_y or y >= frame_y + frame_h) and index_grid[y, x, 0] >= 0:
+					extra_piece_list.append(index_grid[y, x, 0])
+
+		return index_grid[frame_y:frame_y+frame_h, frame_x:frame_x+frame_w, :], extra_piece_list
+
+	def get_best_frame_loc(self, occupied_grid, W, H):
+		[H_prime, W_prime] = occupied_grid.shape
+
+		best_x = -1
+		best_y = -1
+		best_count = -1
+
+		for x in xrange(W_prime - W + 1):
+			for y in xrange(H_prime - H + 1):
+				window = occupied_grid[y:y+H, x:x+W]
+				window_sum = np.sum(window)
+				if window_sum > best_count:
+					best_x = x
+					best_y = y
+					best_count = window_sum
+		return best_x, best_y, best_count
 
 
