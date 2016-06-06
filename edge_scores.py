@@ -33,6 +33,48 @@ def is_correct_neighbor(sq, sq_rot, nbr, nbr_rot):
 		correct_piece = nbr.r == sq.r - 1 and nbr.c == sq.c
 	return correct_piece, correct_piece and sq_rot == nbr_rot
 
+def get_edge_cost(hole_index, index_grid, extra, extra_rot, neighbor_flag, img):
+	n_x = hole_index[0]
+	n_y = hole_index[1]
+	[H, W, _] = index_grid.shape
+	if neighbor_flag == 0:
+		n_x += 1
+		if n_x >= W:
+			return 0
+	elif neighbor_flag == 1:
+		n_y -= 1
+		if n_y >= H:
+			return 0
+	elif neighbor_flag == 2:
+		n_x -= 1
+		if n_x < 0:
+			return 0
+	elif neighbor_flag == 3:
+		n_y += 1
+		if n_y < 0:
+			return 0
+
+	if index_grid[n_y, n_x, 0] < 0:
+		return 0
+
+	n_rot = (index_grid[n_y, n_x, 1] + neighbor_flag) % 4
+	e_rot = (extra_rot + neighbor_flag) % 4
+
+	sq_e = img.pieces[extra]
+	sq_n = img.pieces[index_grid[n_y, n_x, 0]]
+
+	left_mean = sq_e.get_left_mean(e_rot)
+	right_mean = sq_n.get_right_mean(n_rot)
+
+	left_covar_inv = sq_e.get_left_covar_inv(e_rot)
+	right_covar_inv = sq_n.get_right_covar_inv(n_rot)
+
+	p_e = sq_e.get_rotated_pixels(e_rot)
+	p_n = sq_n.get_rotated_pixels(n_rot)
+
+	dist = get_compat(left_mean, left_covar_inv, right_mean, right_covar_inv, p_e, p_n)
+	return dist
+
 
 def compute_edge_dist(img, type2=True, ssd=False, divideBySecond=True):
 	K = len(img.pieces)

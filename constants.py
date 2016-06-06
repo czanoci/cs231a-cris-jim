@@ -1,6 +1,6 @@
 # the file where the image is stored
 # img_filename = './Images/elephants/elephants.jpg'
-img_filename = './Images/imData/6.png'
+img_filename = './Images/imData/10.png'
 
 # ./Images/imData/ for the MIT dataset and ./Images/elephants/ for the elephant picture
 img_folder = './Images/elephants/'

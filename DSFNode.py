@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 from constants import *
+from edge_scores import *
 
 class DSFNode:
 	def __init__(self, i):
@@ -222,4 +223,69 @@ class DisjointSetForest:
 					best_count = window_sum
 		return best_x, best_y, best_count
 
+	# returns the list of the holes with the top number of occupied neighbors
+	# in there are no holes, it will return an empty list
+	def get_top_tier_holes(self, index_grid):
+		hole_list = []
+		tier = 1
+		[H, W, _] = index_grid.shape
+		for x in xrange(W):
+			for y in xrange(H):
+				if index_grid[y, x, 0] >= 0:
+					continue
 
+				counter = 0
+				if x-1 >= 0 and index_grid[y, x-1, 0] >= 0:
+					counter += 1
+				if y-1 >= 0 and index_grid[y-1, x, 0] >= 0:
+					counter += 1
+				if x+1 < W and index_grid[y, x+1, 0] >= 0:
+					counter += 1
+				if y+1 < H and index_grid[y+1, x, 0] >= 0:
+					counter += 1
+
+				if counter == tier:
+					hole_list.append((x, y))
+				elif counter > tier:
+					tier = counter
+					hole_list = [(x, y)]
+		return hole_list
+
+	def fill(self, index_grid, extra_piece_list, img):
+		# while there are still extra pieces
+		while len(extra_piece_list) > 0:
+			# call a function which scans index_grid and returns list of all pieces in top tier
+			top_tier_holes = self.get_top_tier_holes(index_grid)
+
+			# print top_tier_holes
+
+			best_extra = -1
+			best_rot = -1
+			best_dist = float('inf')
+			best_hole_index = (-1, -1)
+
+			# loop over that list
+			for hole_index in top_tier_holes:
+				# loop over the extra pieces
+				for extra in extra_piece_list:
+					# loop over rotations of the selected extra piece
+					for extra_rot in xrange(4):
+						# compute MGC dist for putting that extra piece w/ that rotation in that hole
+						total_dist = 0
+						total_dist += get_edge_cost(hole_index, index_grid, extra, extra_rot, 0, img)
+						total_dist += get_edge_cost(hole_index, index_grid, extra, extra_rot, 1, img)
+						total_dist += get_edge_cost(hole_index, index_grid, extra, extra_rot, 2, img)
+						total_dist += get_edge_cost(hole_index, index_grid, extra, extra_rot, 3, img)
+						# if total MGC dist is less than min thus far, store it
+						if total_dist < best_dist:
+							best_dist = total_dist
+							best_extra = extra
+							best_rot = extra_rot
+							best_hole_index = hole_index
+
+			#put the piece with the minimum MGC dist in the hole
+			index_grid[best_hole_index[1], best_hole_index[0], 0] = best_extra
+			index_grid[best_hole_index[1], best_hole_index[0], 1] = best_rot
+
+			extra_piece_list.remove(best_extra)
+		return index_grid

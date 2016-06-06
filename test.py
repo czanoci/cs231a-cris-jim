@@ -59,6 +59,19 @@ def dsf_reconstruct_dataset():
 			pixels = forest.reconstruct(index, img.pieces)
 			cv2.imwrite(reconDir + 'final.jpg', pixels)
 
+		index_grid, occupied_grid = forest.get_orig_trim_array()
+		pixels = forest.reconstruct_trim(index_grid, img.pieces)
+
+		frame_W = img.W / P
+		frame_H = img.H / P
+		trim_index_grid, extra_piece_list = forest.trim(index_grid, occupied_grid, frame_W, frame_H)
+
+		pixels = forest.reconstruct_trim(trim_index_grid, img.pieces)
+		cv2.imwrite(reconDir + 'trim_index_grid.jpg', pixels)
+		filled_index_grid = forest.fill(trim_index_grid, extra_piece_list, img)
+		pixels = forest.reconstruct_trim(filled_index_grid, img.pieces)
+		cv2.imwrite(reconDir + 'filled_index_grid.jpg', pixels)
+
 
 def dsf_reconstruction_test():
 	type2 = True
@@ -75,9 +88,9 @@ def dsf_reconstruction_test():
 	for sq in img.pieces:
 		sq.compute_mean_and_covar_inv()
 
-	# dists_mgc = compute_edge_dist(img, type2)
+	dists_mgc = compute_edge_dist(img, type2)
 	# np.save('./Data/6', dists_mgc)
-	dists_mgc = np.load('./Data/6.npy')
+	# dists_mgc = np.load('./Data/6.npy')
 
 	dists_list = []
 	for i in xrange(K):
@@ -111,13 +124,27 @@ def dsf_reconstruction_test():
 
 	index_grid, occupied_grid = forest.get_orig_trim_array()
 	pixels = forest.reconstruct_trim(index_grid, img.pieces)
-	cv2.imwrite(reconDir + 'pre_trim_index_grid.jpg', pixels)
 
 	frame_W = img.W / P
 	frame_H = img.H / P
 	trim_index_grid, extra_piece_list = forest.trim(index_grid, occupied_grid, frame_W, frame_H)
+
+	# rem_x = 14
+	# rem_y = 7
+	# extra_piece_list.append(trim_index_grid[rem_y, rem_x, 0])
+	# print trim_index_grid[rem_y, rem_x, 0]
+	# trim_index_grid[rem_y, rem_x, 0] = -1
+	# print trim_index_grid[rem_y, rem_x, 1]
+	# trim_index_grid[rem_y, rem_x, 1] = -1
+	# print trim_index_grid[rem_y-1:rem_y+2, rem_x - 1:rem_x+2, 0]
+	# print trim_index_grid[rem_y-1:rem_y+2, rem_x - 1:rem_x+2, 1]
+
 	pixels = forest.reconstruct_trim(trim_index_grid, img.pieces)
 	cv2.imwrite(reconDir + 'trim_index_grid.jpg', pixels)
+	filled_index_grid = forest.fill(trim_index_grid, extra_piece_list, img)
+	pixels = forest.reconstruct_trim(filled_index_grid, img.pieces)
+	cv2.imwrite(reconDir + 'filled_index_grid.jpg', pixels)
+
 
 def dsf_test():
 	numNodes = 2000
@@ -206,5 +233,5 @@ def save_ssd_wrong_pics():
 			count += 1
 
 # compute_edge_correct_percents()
-dsf_reconstruction_test()
-# dsf_reconstruct_dataset()
+# dsf_reconstruction_test()
+dsf_reconstruct_dataset()
