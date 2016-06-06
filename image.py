@@ -138,76 +138,44 @@ def direct_metric(img, index_grid):
 		list_correct.append(correct)
 	return max(list_correct)
 
-def neighbor_metric_helper(img, index_grid, img_map):
+def neighbor_metric(img, index_grid):
 	true_H = img.H/P
 	true_W = img.W/P
-	#index_grid2 = np.rot90(index_grid[:, :, 0], 0)
-	#index_grid3 = np.rot90(index_grid[:, :, 1], 0)
 	[H, W, _] = index_grid.shape
-	#if true_H != H or true_W != W:
-		#return 0
 	correct = 0
-	print index_grid[:, :, 0]
-	print index_grid[:, :, 1]
 	for x in xrange(W):
 		for y in xrange(H):
 			piece_index = index_grid[y, x, 0]
 			piece_rot = index_grid[y, x, 1]
 			sq = img.pieces[piece_index]
-			print ''
-			print x, y, sq.r, sq.c, (piece_rot + sq.rot_idx) % 4
+
+			right_r = sq.r
+			right_c = sq.c
+			bot_r = sq.r
+			bot_c = sq.c
+
 			if (piece_rot + sq.rot_idx) % 4 == 0:
-				print 'case 0'
-				right_r = sq.r
 				right_c = sq.c + 1
 				bot_r = sq.r - 1
-				bot_c = sq.c
 			elif (piece_rot + sq.rot_idx) % 4 == 1:
-				print 'case 1'
-				right_r = sq.r - 1 
-				right_c = sq.c
-				bot_r = sq.r
-				bot_c = sq.c - 1
+				right_r = sq.r + 1
+				bot_c = sq.c + 1
 			elif (piece_rot + sq.rot_idx) % 4 == 2:
-				print 'case 2'
-				right_r = sq.r
 				right_c = sq.c - 1
 				bot_r = sq.r + 1
-				bot_c = sq.c
 			else:
-				print 'case 3'
-				right_r = sq.r + 1 
-				right_c = sq.c
-				bot_r = sq.r
-				bot_c = sq.c + 1
-
-			print right_r, right_c, bot_r, bot_c
+				right_r = sq.r - 1
+				bot_c = sq.c - 1
 
 			if right_r >=0 and right_r < true_H and right_c >= 0 and right_c < true_W and x < W-1:
-				right_index = img_map[(right_r, right_c)]
-				right_rot = img.pieces[right_index].rot_idx
+				right_index = index_grid[y, x+1, 0]
 				right_sq = img.pieces[right_index]
-				print 'right', right_sq.r, right_sq.c, right_index, right_rot
-				if index_grid[y, x+1, 0] == right_index :#and ((piece_rot + sq.rot_idx) - (right_rot + right_sq.rot_idx)) % 4 == 0:
+				if right_r == right_sq.r and right_c == right_sq.c and ((piece_rot + sq.rot_idx) - (index_grid[y, x+1, 1] + right_sq.rot_idx)) % 4 == 0:
 					correct += 1
 
 			if bot_r >=0 and bot_r < true_H and bot_c >= 0 and bot_c < true_W and y < H-1:
-				bot_index = img_map[(bot_r, bot_c)]
-				bot_rot = img.pieces[bot_index].rot_idx
+				bot_index = index_grid[y+1, x, 0]
 				bot_sq = img.pieces[bot_index]
-				print 'bot', bot_sq.r, bot_sq.c, bot_index, bot_rot
-				if index_grid[y+1, x, 0] == bot_index :#and ((piece_rot + sq.rot_idx) - (bot_rot + bot_sq.rot_idx)) % 4 == 0:
+				if bot_r == bot_sq.r and bot_c == bot_sq.c and ((piece_rot + sq.rot_idx) - (index_grid[y+1, x, 1] + bot_sq.rot_idx)) % 4 == 0:
 					correct += 1
 	return correct
-
-
-
-def neighbor_metric(img, index_grid):
-	img_map = {}
-	for piece in img.pieces:
-		r = piece.r
-		c = piece.c
-		idx = piece.idx
-		img_map[(r, c)] = idx
-
-	return neighbor_metric_helper(img, index_grid, img_map)

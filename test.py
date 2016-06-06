@@ -15,7 +15,8 @@ def dsf_reconstruct_dataset():
 	type2 = True
 	random.seed(1122334455667)
 
-	metric_vals = {}
+	direct_metric_vals = {}
+	neighbor_metric_vals = {}
 
 	for f in os.listdir(img_folder):
 		print f
@@ -36,7 +37,7 @@ def dsf_reconstruct_dataset():
 		dists_list = []
 		for i in xrange(K):
 			for edgeNum_i in xrange(4):
-				for j in xrange(K):
+				for j in range(i+1, K):
 					for edgeNum_j in xrange(4):
 						dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
 		heapify(dists_list)
@@ -75,9 +76,14 @@ def dsf_reconstruct_dataset():
 		cv2.imwrite(reconDir + 'filled_index_grid.jpg', pixels)
 
 		correct = direct_metric(img, filled_index_grid)
-		metric_vals[picName] = correct
+		direct_metric_vals[picName] = correct
+		print picName, 'direct', correct, '/', frame_W*frame_H
+		correct = neighbor_metric(img, filled_index_grid)
+		print picName, 'neighbor', correct, '/', 2*frame_W*frame_H - frame_H - frame_W
+		neighbor_metric_vals[picName] = correct
 
-	print metric_vals
+	print 'direct metric', direct_metric_vals
+	print 'neighbor metric', neighbor_metric_vals
 
 def dsf_reconstruction_test():
 	type2 = True
@@ -101,7 +107,7 @@ def dsf_reconstruction_test():
 	dists_list = []
 	for i in xrange(K):
 		for edgeNum_i in xrange(4):
-			for j in xrange(K):
+			for j in range(i + 1, K):
 				for edgeNum_j in xrange(4):
 					dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
 	heapify(dists_list)
@@ -135,25 +141,16 @@ def dsf_reconstruction_test():
 	frame_H = img.H / P
 	trim_index_grid, extra_piece_list = forest.trim(index_grid, occupied_grid, frame_W, frame_H)
 
-	# rem_x = 14
-	# rem_y = 7
-	# extra_piece_list.append(trim_index_grid[rem_y, rem_x, 0])
-	# print trim_index_grid[rem_y, rem_x, 0]
-	# trim_index_grid[rem_y, rem_x, 0] = -1
-	# print trim_index_grid[rem_y, rem_x, 1]
-	# trim_index_grid[rem_y, rem_x, 1] = -1
-	# print trim_index_grid[rem_y-1:rem_y+2, rem_x - 1:rem_x+2, 0]
-	# print trim_index_grid[rem_y-1:rem_y+2, rem_x - 1:rem_x+2, 1]
-
 	pixels = forest.reconstruct_trim(trim_index_grid, img.pieces)
 	cv2.imwrite(reconDir + 'trim_index_grid.jpg', pixels)
 	filled_index_grid = forest.fill(trim_index_grid, extra_piece_list, img)
 	pixels = forest.reconstruct_trim(filled_index_grid, img.pieces)
 	cv2.imwrite(reconDir + 'filled_index_grid.jpg', pixels)
 
-	#correct = direct_metric(img, filled_index_grid)
+	correct = direct_metric(img, filled_index_grid)
+	print 'direct correct', correct, '/', frame_W * frame_H
 	correct = neighbor_metric(img, filled_index_grid)
-	print correct
+	print 'neighbor correct', correct, '/', 2*frame_W*frame_H - frame_H - frame_W
 
 
 def dsf_test():
