@@ -15,6 +15,8 @@ def dsf_reconstruct_dataset():
 	type2 = True
 	random.seed(1122334455667)
 
+	metric_vals = {}
+
 	for f in os.listdir(img_folder):
 		print f
 		picName = f[:string.rfind(f, '.')]
@@ -57,7 +59,7 @@ def dsf_reconstruct_dataset():
 
 		for index in forest.pieceCoordMap.keys():
 			pixels = forest.reconstruct(index, img.pieces)
-			cv2.imwrite(reconDir + 'final.jpg', pixels)
+			cv2.imwrite(reconDir + 'pre_trim.jpg', pixels)
 
 		index_grid, occupied_grid = forest.get_orig_trim_array()
 		pixels = forest.reconstruct_trim(index_grid, img.pieces)
@@ -72,6 +74,10 @@ def dsf_reconstruct_dataset():
 		pixels = forest.reconstruct_trim(filled_index_grid, img.pieces)
 		cv2.imwrite(reconDir + 'filled_index_grid.jpg', pixels)
 
+		correct = direct_metric(img, filled_index_grid)
+		metric_vals[picName] = correct
+
+	print metric_vals
 
 def dsf_reconstruction_test():
 	type2 = True
@@ -144,6 +150,10 @@ def dsf_reconstruction_test():
 	filled_index_grid = forest.fill(trim_index_grid, extra_piece_list, img)
 	pixels = forest.reconstruct_trim(filled_index_grid, img.pieces)
 	cv2.imwrite(reconDir + 'filled_index_grid.jpg', pixels)
+
+	#correct = direct_metric(img, filled_index_grid)
+	correct = neighbor_metric(img, filled_index_grid)
+	print correct
 
 
 def dsf_test():
@@ -233,5 +243,5 @@ def save_ssd_wrong_pics():
 			count += 1
 
 # compute_edge_correct_percents()
-# dsf_reconstruction_test()
-dsf_reconstruct_dataset()
+dsf_reconstruction_test()
+# dsf_reconstruct_dataset()

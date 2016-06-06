@@ -43,7 +43,7 @@ def get_edge_cost(hole_index, index_grid, extra, extra_rot, neighbor_flag, img):
 			return 0
 	elif neighbor_flag == 1:
 		n_y -= 1
-		if n_y >= H:
+		if n_y < 0:
 			return 0
 	elif neighbor_flag == 2:
 		n_x -= 1
@@ -51,7 +51,7 @@ def get_edge_cost(hole_index, index_grid, extra, extra_rot, neighbor_flag, img):
 			return 0
 	elif neighbor_flag == 3:
 		n_y += 1
-		if n_y < 0:
+		if n_y >= H:
 			return 0
 
 	if index_grid[n_y, n_x, 0] < 0:
