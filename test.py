@@ -149,8 +149,12 @@ def dsf_reconstruction_test():
 
 	correct = direct_metric(img, filled_index_grid)
 	print 'direct correct', correct, '/', frame_W * frame_H
-	correct = neighbor_metric(img, filled_index_grid)
-	print 'neighbor correct', correct, '/', 2*frame_W*frame_H - frame_H - frame_W
+	correct2 = neighbor_metric(img, filled_index_grid)
+	print 'neighbor correct', correct2, '/', 2*frame_W*frame_H - frame_H - frame_W
+	with open('./out.txt', 'w') as f:
+  		f.write('%d%s%d' % (correct, '/', frame_W * frame_H))
+  		f.write('\n')
+  		f.write('%d%s%d' % (correct2, '/', 2*frame_W*frame_H - frame_H - frame_W))
 
 
 def dsf_test():
