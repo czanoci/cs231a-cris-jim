@@ -4,6 +4,7 @@ import numpy as np
 from constants import *
 from image import *
 import matplotlib.pyplot as plt
+from sets import Set
 
 def get_nonsym_compat(G, mu, S_inv):
 	compat = 0
@@ -78,6 +79,28 @@ def get_edge_cost(hole_index, index_grid, extra, extra_rot, neighbor_flag, img):
 
 def compute_edge_dist(img, type2=True, ssd=False, divideBySecond=True):
 	K = len(img.pieces)
+
+	buckets = [[[Set([]) for k in xrange(num_buckets)] for j in xrange(num_buckets)] for i in xrange(num_buckets)]
+	bucket_size = 256 * P / num_buckets
+
+	for i in xrange(K):
+		sq = img.pieces[i]
+		for rot in xrange(4):
+			pixels = sq.get_rotated_pixels(rot)
+			color_sums = np.sum(pixels[:, P - 1, :], axis = 0)
+			red = color_sums[0] / bucket_size
+			green = color_sums[1] / bucket_size
+			blue = color_sums[2] / bucket_size
+			print red, green, blue
+			buckets[red][green][blue].add((i, rot))
+
+	for i in xrange(num_buckets):
+		for j in xrange(num_buckets):
+			for k in xrange(num_buckets):
+				if len(buckets[i][j][k]) != 0:
+					print len(buckets[i][j][k])
+
+
 
 	dists = np.zeros([K, 4, K, 4])
 	for i in xrange(K):

@@ -86,6 +86,9 @@ def dsf_reconstruct_dataset():
 	print 'neighbor metric', neighbor_metric_vals
 
 def dsf_reconstruction_test():
+
+
+
 	type2 = True
 	random.seed(1122334455667)
 	picName = img_filename[string.rfind(img_filename, '/')+1:string.rfind(img_filename, '.')]
@@ -101,6 +104,7 @@ def dsf_reconstruction_test():
 		sq.compute_mean_and_covar_inv()
 
 	dists_mgc = compute_edge_dist(img, type2)
+	sys.exit()
 	# np.save('./Data/6', dists_mgc)
 	# dists_mgc = np.load('./Data/6.npy')
 
@@ -301,6 +305,6 @@ def save_ssd_wrong_pics():
 			count += 1
 
 # compute_edge_correct_percents()
-# dsf_reconstruction_test()
-dsf_reconstruct_dataset()
+dsf_reconstruction_test()
+# dsf_reconstruct_dataset()
 # mixed_test()
