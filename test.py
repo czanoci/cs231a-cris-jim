@@ -97,23 +97,26 @@ def dsf_reconstruction_test():
 		os.makedirs(reconDir)
 
 	img = Image(img_filename)
+	frame_W = img.W / P
+	frame_H = img.H / P
+	min_edges = min(min_edges, 2*frame_W*frame_H - frame_H - frame_W)
 	scramble(img, type2)
 	assemble_image(img, reconDir + 'beginning.jpg')
 	K = len(img.pieces)
 	for sq in img.pieces:
 		sq.compute_mean_and_covar_inv()
 
-	dists_mgc = compute_edge_dist(img, type2)
-	sys.exit()
+	# dists_mgc = compute_edge_dist(img, type2)
 	# np.save('./Data/6', dists_mgc)
 	# dists_mgc = np.load('./Data/6.npy')
 
-	dists_list = []
-	for i in xrange(K):
-		for edgeNum_i in xrange(4):
-			for j in xrange(K):
-				for edgeNum_j in xrange(4):
-					dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
+	# dists_list = []
+	dists_list = compute_edge_dist(img, type2)
+	# for i in xrange(K):
+	# 	for edgeNum_i in xrange(4):
+	# 		for j in xrange(K):
+	# 			for edgeNum_j in xrange(4):
+	# 				dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
 	heapify(dists_list)
 
 	forest = DisjointSetForest(K)
@@ -141,8 +144,7 @@ def dsf_reconstruction_test():
 	index_grid, occupied_grid = forest.get_orig_trim_array()
 	pixels = forest.reconstruct_trim(index_grid, img.pieces)
 
-	frame_W = img.W / P
-	frame_H = img.H / P
+	
 	trim_index_grid, extra_piece_list = forest.trim(index_grid, occupied_grid, frame_W, frame_H)
 
 	pixels = forest.reconstruct_trim(trim_index_grid, img.pieces)
