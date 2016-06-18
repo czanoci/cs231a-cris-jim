@@ -13,7 +13,7 @@ import string
 
 def dsf_reconstruct_dataset():
 	type2 = True
-	random.seed(1122334455667)
+	# random.seed(1122334455667)
 
 	direct_metric_vals = {}
 	neighbor_metric_vals = {}
@@ -37,7 +37,7 @@ def dsf_reconstruct_dataset():
 		dists_list = []
 		for i in xrange(K):
 			for edgeNum_i in xrange(4):
-				for j in range(i+1, K):
+				for j in xrange(K):
 					for edgeNum_j in xrange(4):
 						dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
 		heapify(dists_list)
@@ -54,7 +54,7 @@ def dsf_reconstruct_dataset():
 
 				print 'reconstructing', num_c, edge
 				pixels = forest.reconstruct(clust_index, img.pieces)
-				cv2.imwrite(reconDir + 'gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
+				# cv2.imwrite(reconDir + 'gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
 
 		print 'ended with', len(dists_list), 'edges'
 
@@ -86,6 +86,9 @@ def dsf_reconstruct_dataset():
 	print 'neighbor metric', neighbor_metric_vals
 
 def dsf_reconstruction_test():
+
+
+
 	type2 = True
 	random.seed(1122334455667)
 	picName = img_filename[string.rfind(img_filename, '/')+1:string.rfind(img_filename, '.')]
@@ -94,22 +97,26 @@ def dsf_reconstruction_test():
 		os.makedirs(reconDir)
 
 	img = Image(img_filename)
+	frame_W = img.W / P
+	frame_H = img.H / P
+	min_edges = min(min_edges, 2*frame_W*frame_H - frame_H - frame_W)
 	scramble(img, type2)
 	assemble_image(img, reconDir + 'beginning.jpg')
 	K = len(img.pieces)
 	for sq in img.pieces:
 		sq.compute_mean_and_covar_inv()
 
-	dists_mgc = compute_edge_dist(img, type2)
+	# dists_mgc = compute_edge_dist(img, type2)
 	# np.save('./Data/6', dists_mgc)
 	# dists_mgc = np.load('./Data/6.npy')
 
-	dists_list = []
-	for i in xrange(K):
-		for edgeNum_i in xrange(4):
-			for j in range(i + 1, K):
-				for edgeNum_j in xrange(4):
-					dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
+	# dists_list = []
+	dists_list = compute_edge_dist(img, type2)
+	# for i in xrange(K):
+	# 	for edgeNum_i in xrange(4):
+	# 		for j in xrange(K):
+	# 			for edgeNum_j in xrange(4):
+	# 				dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
 	heapify(dists_list)
 
 	forest = DisjointSetForest(K)
@@ -137,8 +144,7 @@ def dsf_reconstruction_test():
 	index_grid, occupied_grid = forest.get_orig_trim_array()
 	pixels = forest.reconstruct_trim(index_grid, img.pieces)
 
-	frame_W = img.W / P
-	frame_H = img.H / P
+	
 	trim_index_grid, extra_piece_list = forest.trim(index_grid, occupied_grid, frame_W, frame_H)
 
 	pixels = forest.reconstruct_trim(trim_index_grid, img.pieces)
@@ -156,6 +162,63 @@ def dsf_reconstruction_test():
   		f.write('\n')
   		f.write('%d%s%d' % (correct2, '/', 2*frame_W*frame_H - frame_H - frame_W))
 
+def mixed_test():
+	type2 = True
+	random.seed(1122334455667)
+	picName = img_filename[string.rfind(img_filename, '/')+1:string.rfind(img_filename, '.')]
+	picName2 = img_filename2[string.rfind(img_filename2, '/')+1:string.rfind(img_filename2, '.')]
+	reconDir = './Images/Reconstruction_Generations/' + picName + 'mixedWith' +  picName2 + '/'
+	if not os.path.exists(reconDir):
+		os.makedirs(reconDir)
+
+	img = Image(img_filename)
+	scramble(img, type2)
+	K = len(img.pieces)
+	for sq in img.pieces:
+		sq.compute_mean_and_covar_inv()
+
+	img2 = Image(img_filename2)
+	scramble(img2, type2)
+	K2 = len(img2.pieces)
+	for sq in img2.pieces:
+		sq.compute_mean_and_covar_inv()
+		sq.idx += K
+	img.pieces = np.concatenate((img.pieces, img2.pieces), 1)
+	K += K2
+
+	dists_mgc = compute_edge_dist(img, type2)
+	# np.save('./Data/6', dists_mgc)
+	# dists_mgc = np.load('./Data/6.npy')
+
+	dists_list = []
+	for i in xrange(K):
+		for edgeNum_i in xrange(4):
+			for j in range(i + 1, K):
+				for edgeNum_j in xrange(4):
+					dists_list.append( (dists_mgc[i, edgeNum_i, j, edgeNum_j], i, j, edgeNum_i, edgeNum_j) )
+	heapify(dists_list)
+
+	forest = DisjointSetForest(K)
+
+	print 'starting with', len(dists_list), 'edges'
+
+	while forest.numClusters > 1:
+		edge = heappop(dists_list)
+		clust_index = forest.union(edge[1], edge[2], edge[3], edge[4])
+		if clust_index != -1:
+			num_c = forest.numClusters
+
+			print 'reconstructing', num_c, edge
+			pixels = forest.reconstruct(clust_index, img.pieces)
+			cv2.imwrite(reconDir + 'gen' + str(K - num_c) + '.cluster' + str(clust_index) + '.jpg', pixels)
+
+	print 'ended with', len(dists_list), 'edges'
+
+	forest.collapse()
+
+	for index in forest.pieceCoordMap.keys():
+		pixels = forest.reconstruct(index, img.pieces)
+		cv2.imwrite(reconDir + 'pre_trim.jpg', pixels)
 
 def dsf_test():
 	numNodes = 2000
@@ -246,3 +309,4 @@ def save_ssd_wrong_pics():
 # compute_edge_correct_percents()
 dsf_reconstruction_test()
 # dsf_reconstruct_dataset()
+# mixed_test()
